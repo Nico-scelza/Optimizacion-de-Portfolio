@@ -1,126 +1,86 @@
-# 📈 Optimización de Portafolio: CAPM y Upside
+# 📈 Optimización Quantamental: CAPM, Shrinkage & CVaR
 
-Este repositorio contiene un **modelo completo** para calcular retornos esperados de activos, construir una matriz de riesgo y ejecutar una optimización de portafolio, utilizando metodologías robustas como **CAPM** (ajustado por riesgo país para activos argentinos) y **Upside**.
+Este repositorio contiene un motor de **Ingeniería Financiera** diseñado para la gestión de portafolios de inversión. Combina el análisis fundamental (Upside manual) con modelos cuantitativos robustos para la estimación de riesgo.
 
-La idea principal es tener un flujo limpio y metodológico. Obtener datos, elegir metodología de retorno, estimar riesgo y finalmente optimizar.
-
----
-
-## 🚀 ¿Qué hace este proyecto?
-
-El *notebook* (`Optimización de Portfolio.ipynb`) permite gestionar el flujo completo de la optimización:
-
-* **Calcular retornos esperados** usando dos métodos distintos. **Upside** basado en precios objetivos o **CAPM** basado en riesgo sistemático.
-* **Ajustar automáticamente el CAPM** para empresas argentinas agregando **riesgo país** al rendimiento esperado.
-* **Construir matrices de covarianza** a partir de retornos históricos.
-* **Ejecutar una optimización tipo Markowitz** buscando la mejor combinación riesgo-retorno.
-* **Graficar la frontera eficiente** con puntos clave.
-* **Mostrar pesos óptimos** y métricas del portafolio, como el **Sharpe Ratio**.
-
-En resumen, te permite desde cero: Cargar activos, elegir método de retorno y Optimizar.
+A diferencia de los optimizadores básicos de Markowitz, este modelo incorpora **Ledoit-Wolf Shrinkage** para limpiar el ruido estadístico de la matriz de covarianza y **CVaR (Conditional Value at Risk)** para proteger la cartera contra eventos extremos del mercado ("cisnes negros" o colas gordas).
 
 ---
 
-## 📊 Cálculo de Retornos Esperados
+## 🚀 Características Principales
 
-Tenés dos métodos a disposición. Podés elegir cuál usar según tu análisis.
+El *notebook* (`Optimización de Portfolio.ipynb`) ejecuta un flujo de trabajo profesional:
 
-### 🔵 1. Método Upside
-
-El retorno esperado se calcula de forma sencilla, asumiendo que el precio del activo se moverá hacia un **Target Price** (Precio Objetivo) en un horizonte dado.
-
-$$\text{Upside} = \frac{\text{Target Price} - \text{Current Price}}{\text{Current Price}}$$
-
-Es útil cuando trabajás con acciones donde tenés un precio objetivo confiable, como reportes de analistas o valuaciones propias.
-
-### 🔴 2. Modelo CAPM (Capital Asset Pricing Model)
-
-El modelo CAPM calcula el rendimiento esperado en función de la tasa libre de riesgo y el riesgo sistemático del activo ($\beta$).
-
-$$\text{Return} = R_f + \beta \times (R_m - R_f)$$
-
-Donde:
-
-* $R_f$ es la **tasa libre de riesgo**.
-* $R_m$ es el **rendimiento esperado del mercado**.
-* $\beta$ mide la **sensibilidad del activo** a los movimientos del mercado.
-
-### 🇦🇷 Ajuste especial para empresas argentinas
-
-Si el activo corresponde a una compañía argentina, se añade el **Riesgo País** al retorno esperado. Esto refleja el mayor riesgo soberano inherente a la inversión en Argentina.
-
-La fórmula queda así:
-
-$$\text{Return}_{\text{AR}} = R_f + \text{Riesgo País} + \beta \times (R_m - R_f)$$
-
-Ese ajuste se aplica automáticamente según el *ticker*/país que indiques en los datos de entrada.
+* **Enfoque Híbrido (Quantamental):** Permite al usuario definir sus propios retornos esperados (*Upside*) o confiar en el equilibrio del mercado (*CAPM*).
+* **Estadística Robusta:** Reemplaza la covarianza histórica simple por la estimación de **Ledoit-Wolf**, reduciendo errores de estimación y evitando soluciones de esquina inestables.
+* **Gestión de Riesgo de Cola:** Optimiza no solo por Varianza (volatilidad normal), sino también por **CVaR al 95%** (pérdida esperada en escenarios de crisis).
+* **Ajuste Argentina:** Incorpora automáticamente el **Riesgo País** al modelo CAPM para activos locales.
+* **Comparativa Transparente:** Genera una tabla final que confronta la "Teoría" (Tasa CAPM) contra la "Visión del Inversor" (Retorno Final).
 
 ---
 
-## 🧮 Construcción de la Matriz de Riesgo
+## 📊 Modelado de Retornos (La Visión)
 
-El *notebook*:
+El modelo permite contrastar dos fuentes de retorno para cada activo:
 
-* Descarga o procesa datos históricos de precios.
-* Calcula rendimientos logarítmicos o simples.
-* Estima la **matriz de covarianza** ($\Sigma$) de los retornos.
-* Usa esa matriz como insumo principal del optimizador.
+### 1. Tasa Teórica (CAPM Ajustado)
+Calcula el retorno de equilibrio exigido por el mercado:
+$$E(R) = R_f + \beta (R_m - R_f) + \text{Spread Riesgo País}$$
+* *Nota:* El Spread de Riesgo País se aplica automáticamente a activos argentinos (basado en datos de Ámbito/Rava).
 
----
-
-## ⚙️ Optimización del Portafolio
-
-Se resuelve un problema clásico de la **Teoría Moderna de Portafolio (Markowitz)**, encontrando la asignación de pesos óptimos que mejor balancea riesgo y retorno.
-
-El problema de optimización puede formularse como:
-
-$$\text{Minimizar: } \quad w^{\text{T}} \Sigma w$$
-
-$$ \text{Sujeto a: } \quad w^{\text{T}} \mu = \text{retorno objetivo (o maximizar Sharpe)}$$
-$$\qquad \qquad \sum w = 1$$
-$$\qquad \qquad w \geq 0 \quad \text{(si no se permiten ventas en corto)}$$
-
-Donde:
-
-* $\Sigma$ es la **matriz de covarianza**.
-* $\mu$ son los **retornos esperados**.
-* $w$ son los **pesos** (la combinación que buscamos).
-
-Los resultados de la optimización incluyen:
-
-* **Pesos óptimos**.
-* **Sharpe ratio** para cada portafolio.
-* Gráfico de la **frontera eficiente**.
-* Identificación del **Portafolio con máximo Sharpe**.
-* Identificación del **Portafolio de mínima varianza**.
+### 2. Visión del Inversor (Upside)
+Permite ingresar manualmente un **Target Price** o Upside estimado a 5 años. Si el usuario tiene una tesis de inversión fuerte (ej. "Esta acción va a subir 40%"), el modelo prioriza este *input* sobre el CAPM.
 
 ---
 
-## 🧰 Cómo usarlo
+## 🛡️ Modelado de Riesgo (La Ingeniería)
 
-1.  **Abrí el notebook** `Optimización de Portfolio.ipynb` (recomiendo hacerlo con un IDE para la correcta visualización del gráfico).
-2.  **Cargá tu lista de *tickers*** y los datos históricos (o usa la función de descarga).
-3.  **Elegí el método de retorno** que querés usar, ingresando `"upside"` o `"capm"`.
-4.  Si usás CAPM y el activo es argentino, el *script* suma riesgo país automáticamente.
-5.  **Ejecutá la optimización** y revisá los resultados y gráficos generados.
+Aquí es donde el modelo se diferencia de las herramientas académicas básicas:
+
+### 📉 Matriz de Covarianza "Shrinkage" (Ledoit-Wolf)
+Las matrices de covarianza históricas suelen tener mucho "ruido" estadístico. Este modelo aplica una técnica de contracción (*Shrinkage*) hacia una matriz objetivo estructurada.
+* **Beneficio:** Genera portafolios más estables en el tiempo y reduce la sobre-concentración errónea en activos volátiles.
+
+### 🌪️ Conditional Value at Risk (CVaR 95%)
+Mientras que la Varianza mide cuánto se mueve el precio (hacia arriba o abajo), el CVaR responde: **"En el peor 5% de los casos, ¿cuánto espero perder?"**.
+* El optimizador calcula un portafolio específico (`Mínimo CVaR`) diseñado para minimizar estas pérdidas catastróficas, ideal para inversores aversos a crisis.
 
 ---
 
-## 📝 Requisitos
+## ⚙️ Escenarios de Optimización
 
-Este proyecto requiere las siguientes librerías de Python 3.x:
+El algoritmo resuelve numéricamente tres problemas de optimización distintos y los grafica en la Frontera Eficiente:
+
+1.  **⭐ Máximo Sharpe:** La mejor relación Retorno/Riesgo (Volatilidad).
+2.  **💎 Mínima Varianza:** El portafolio con menor volatilidad global (usando Ledoit-Wolf).
+3.  **🛡️ Mínimo CVaR:** El portafolio más defensivo ante eventos de cola (Fat Tails).
+
+---
+
+## 🧰 Guía de Uso
+
+1.  **Ejecutar:** Abrí el notebook `Optimización de Portfolio.ipynb`.
+2.  **Configurar:** Ingresá los *tickers* de tu interés (ej: `AAPL`, `GGAL`, `KO`).
+3.  **Definir Visión:** Se abrirá un panel interactivo.
+    * Ingresá el **Upside %** si tenés una proyección propia.
+    * Dejá en `0` para que el modelo use el **CAPM** automáticamente.
+4.  **Analizar:**
+    * Revisá el gráfico de la Frontera Eficiente.
+    * Analizá la tabla final para ver cómo el modelo asignó los pesos (Markowitz vs CVaR) y compará tu retorno esperado final contra el teórico.
+
+---
+
+## 📝 Requisitos Técnicos
 
 * **Python 3.x**
-* **pandas**
-* **numpy**
-* **yfinance** (si descargás datos online)
-* **matplotlib** / **seaborn**
-* **scipy** (para la optimización)
+* **Pandas & NumPy** (Manipulación de datos)
+* **SciPy** (Motor de optimización `minimize`)
+* **Scikit-Learn** (Cálculo de Covarianza Ledoit-Wolf)
+* **Plotly** (Visualizaciones interactivas)
+* **YFinance** (Descarga de datos de mercado)
+* **BeautifulSoup** (Scraping de tasas y riesgo país)
 
 ---
 
-## 💬 Notas Finales
+## 💬 Nota del Autor
 
-Este proyecto busca dar una base simple pero sólida para optimización real. Sirve tanto para análisis académico como para armar portafolios reales basados en expectativas propias de retorno.
-
-Si querés ampliar esto, agregar métricas, VaR, CVaR, o un optimizador con restricciones avanzadas, se puede sumar cuando quieras.
+Este proyecto busca cerrar la brecha entre la teoría académica y la práctica profesional. Al incorporar **Shrinkage** y **CVaR**, pasamos de jugar con números a gestionar riesgos reales, aceptando que los mercados financieros no siempre siguen una distribución normal perfecta.
