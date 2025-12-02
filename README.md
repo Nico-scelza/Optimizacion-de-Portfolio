@@ -51,7 +51,7 @@ Si el activo corresponde a una compañía argentina, se añade el **Riesgo País
 
 La fórmula queda así:
 
-$$\text{Return}_{\text{AR}} = R_f + \text{Riesgo\_País} + \beta \times (R_m - R_f)$$
+$$\text{Return}_{\text{AR}} = R_f + \text{Riesgo País} + \beta \times (R_m - R_f)$$
 
 Ese ajuste se aplica automáticamente según el *ticker*/país que indiques en los datos de entrada.
 
